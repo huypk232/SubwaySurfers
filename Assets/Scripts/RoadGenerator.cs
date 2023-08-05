@@ -5,8 +5,6 @@ using UnityEngine;
 public class RoadGenerator : MonoBehaviour
 {
     public GameObject[] trackPrefab;
-    // public GameObject wallPrefab;
-    // public Transform spawnPos;
 
     // 2 solution, create some level models before generate subway or spawn each object after a each delta time
     // 1st solution:
@@ -15,6 +13,7 @@ public class RoadGenerator : MonoBehaviour
     void Start()
     {
         // InvokeRepeating("GenerateSubwayTracks", 0f, 9f);
+        GenerateSubwayTracks();
     }
 
     // Update is called once per frame
@@ -39,6 +38,7 @@ public class RoadGenerator : MonoBehaviour
     public void GenerateManually(Vector3 position)
     {
         int pickIndex = Random.Range(0, trackPrefab.Length - 1);
+        Debug.Log("" + pickIndex);
         Instantiate(trackPrefab[pickIndex], position, Quaternion.identity);
     }
 }
