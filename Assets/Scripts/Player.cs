@@ -211,10 +211,13 @@ public class Player : MonoBehaviour
         if(other.gameObject.CompareTag("Coin"))
         {
             Destroy(other.gameObject);
-        } else if(other.TryGetComponent<GenerateRoadTrigger>(out GenerateRoadTrigger trig))
-        {
-            Vector3 genPos = new Vector3(0, 0, transform.position.z +  200);
-            FindObjectOfType<RoadGenerator>().GenerateManually(genPos);
-        }
+        } 
+        // else if(other.TryGetComponent<GenerateRoadTrigger>(out GenerateRoadTrigger trig))
+        // {
+        //     Vector3 genPos = new Vector3(0, 0, transform.position.z +  200);
+
+
+        //     FindObjectOfType<RoadGenerator>().GenerateManually(genPos);
+        // }
     }
 }

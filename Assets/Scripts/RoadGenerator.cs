@@ -12,8 +12,8 @@ public class RoadGenerator : MonoBehaviour
 
     void Start()
     {
-        // InvokeRepeating("GenerateSubwayTracks", 0f, 9f);
         GenerateSubwayTracks();
+        InvokeRepeating("GenerateSubwayTracks", 10f, 10f);
     }
 
     // Update is called once per frame
@@ -24,10 +24,6 @@ public class RoadGenerator : MonoBehaviour
 
     public void GenerateSubwayTracks()
     {
-        // Vector3 localizeSpawnPos = new Vector3(spawnPos.position.x, 0, spawnPos.position.z);
-        // Instantiate(trackPrefab, localizeSpawnPos, Quaternion.identity, transform);
-        // Instantiate(trackPrefab, localizeSpawnPos + Vector3.left * 3, Quaternion.identity, transform);
-        // Instantiate(trackPrefab, localizeSpawnPos + Vector3.right * 3, Quaternion.identity, transform);
         player = GameObject.FindObjectOfType<Player>();
         int pickIndex = Random.Range(0, trackPrefab.Length - 1);
         Vector3 genneratePos = new Vector3(0, 0, player.transform.position.z + 100);
@@ -39,6 +35,7 @@ public class RoadGenerator : MonoBehaviour
     {
         int pickIndex = Random.Range(0, trackPrefab.Length - 1);
         Debug.Log("" + pickIndex);
+        Debug.Log(trackPrefab.Length);
         Instantiate(trackPrefab[pickIndex], position, Quaternion.identity);
     }
 }
