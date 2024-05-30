@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
+
 public enum Lane {
     Left, Mid, Right
 }
@@ -75,7 +77,6 @@ public class Player : MonoBehaviour
             {
                 NewXPos = -XValue;
                 _lane = Lane.Left;
-                // animator.SetTrigger("TurnLeft");
                 animator.Play("Dodge Left");
             } else if(_lane == Lane.Right)
             {
@@ -89,7 +90,6 @@ public class Player : MonoBehaviour
             {
                 NewXPos = XValue;
                 _lane = Lane.Right;
-                // animator.SetTrigger("TurnRight");
                 animator.Play("Dodge Right");
             } else if(_lane == Lane.Left)
             {
@@ -133,7 +133,7 @@ public class Player : MonoBehaviour
             characterController.height = colHeight;
             inRoll = false;
         }
-        SwipeDown = Input.GetKeyDown(KeyCode.DownArrow);
+        SwipeDown = Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S);
         if(SwipeDown) {
             rollCounter = 0.5f;
             y -= 10f;
@@ -146,7 +146,6 @@ public class Player : MonoBehaviour
     }
 
     public void OnCharacterColliderHit(Collider col) {
-        Debug.Log("OnCharacterColliderHit");
         HitX = GetHitX(col);
         HitY = GetHitY(col);
         HitZ = GetHitZ(col);
