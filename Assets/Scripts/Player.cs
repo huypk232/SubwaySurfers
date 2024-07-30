@@ -1,6 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
+using TouchPhase = UnityEngine.TouchPhase;
 
 [System.Serializable]
 
@@ -18,6 +22,11 @@ public enum HitZ {
     Forward, Mid, Backward, None
 }
 
+public enum SwipeDirection
+{
+    None, SwipeUp, SwipeDown, SwipeLeft, SwipeRight
+}
+
 public class Player : MonoBehaviour
 {
     public Lane _lane = Lane.Mid;
@@ -25,35 +34,54 @@ public class Player : MonoBehaviour
     [HideInInspector]
     public bool SwipeLeft, SwipeRight, SwipeUp, SwipeDown;
     public float XValue;
-    public float speed;
 
-    private Animator animator;
 
     private float _runDistance = 50f;
     private float _deltaRunDistance;
-
-    private CharacterController characterController;
+    
+    [Header("Component")]
+    [SerializeField] private PlayerInput playerInput;
+    [SerializeField] private Animator animator;
+    [SerializeField] private CharacterController characterController;
     
     private float lerpX;
-    public float SpeedDodge;
+    public float speedDodge;
     private float jumpForce = 7f; 
     private float x;
     private float y;
-    [SerializeField] bool inJump;
-    [SerializeField] bool inRoll;
+    [SerializeField] private bool inJump;
+    [SerializeField] private bool inRoll;
+    [SerializeField] private Vector3 velocity;
     private float colHeight;
     private float colCenterY;
 
-    // move rollCounter here
-    public HitX HitX = HitX.None;
-    public HitY HitY = HitY.None;
-    public HitZ HitZ = HitZ.None;
+    [SerializeField] private HitX hitX = HitX.None;
+    [SerializeField] private HitY hitY = HitY.None;
+    [SerializeField] private HitZ hitZ = HitZ.None;
 
+    [Header("Mobile Movement")] 
+    private InputAction inputAction;
+
+    private Vector2 touchDownPosition;
+    private Vector2 touchUpPosition;
+    private float swipeResist = 0.5f;
+
+    private void Awake()
+    {
+        // todo add input action later
+        // inputAction.Enable();
+        // inputAction.performed += context =>
+        // {
+        //     StartCoroutine(MoveCoroutine(context.ReadValue<Vector2>()));
+        // };
+        // SwipeDetection.instance.swipePerformed += context =>
+        // {
+        //     StartCoroutine(MoveCoroutine(context));
+        // };
+    }
 
     void Start()
     {
-        animator = GetComponent<Animator>();
-        characterController = GetComponent<CharacterController>();
         colHeight = characterController.height;
         colCenterY = characterController.center.y;
         _deltaRunDistance = _runDistance;
@@ -62,6 +90,13 @@ public class Player : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // if (Input.touch)
+        // Jump();
+        // Roll();
+    }
+
+    private void FixedUpdate()
+    {
         Move();
         Jump();
         Roll();
@@ -69,9 +104,95 @@ public class Player : MonoBehaviour
 
     private void Move()
     {
-        SwipeLeft = Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.A);
-        SwipeRight = Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.D);
-        if(SwipeLeft)
+        Vector3 moveVector = new Vector3(x - transform.position.x, y * Time.deltaTime, 5 * Time.deltaTime);
+        x = Mathf.Lerp(x, NewXPos, Time.deltaTime * speedDodge);
+        characterController.Move(moveVector);
+    }
+    
+    public void OnMove(InputValue value)
+    {
+        var directVector = value.Get<Vector2>();
+        if (directVector.y > directVector.x)
+        {
+            if (value.Get<Vector2>().y > 0)
+            {
+                y = jumpForce;
+                animator.CrossFadeInFixedTime("Jump", 0.1f);
+                inJump = true;
+            }
+            else if (value.Get<Vector2>().y < 0)
+            {
+                rollCounter = 0.5f;
+                y -= 10f;
+                characterController.center = new Vector3(0, colCenterY/2f, 0);
+                characterController.height = colHeight/2f;
+                animator.CrossFadeInFixedTime("Quick Roll To Run", 0.25f);
+                inRoll = true;
+                inJump = false;
+            }
+        }
+        else
+        {
+            if(value.Get<Vector2>().x < 0)
+            {
+                if(_lane == Lane.Mid)
+                {
+                    NewXPos = -XValue;
+                    _lane = Lane.Left;
+                    animator.Play("Dodge Left");
+                } else if(_lane == Lane.Right)
+                {
+                    NewXPos = 0;
+                    _lane = Lane.Mid;
+                    animator.Play("Dodge Left");
+                }
+            } 
+            else if(value.Get<Vector2>().x > 0)
+            {
+                if(_lane == Lane.Mid)
+                {
+                    NewXPos = XValue;
+                    _lane = Lane.Right;
+                    animator.Play("Dodge Right");
+                } else if(_lane == Lane.Left)
+                {
+                    NewXPos = 0;
+                    _lane = Lane.Mid;
+                    animator.Play("Dodge Right");
+                }
+            }
+        }
+    }
+    
+    private SwipeDirection GetSwipeDirection()
+    {
+        var directVector = touchUpPosition - touchDownPosition;
+        var x = Mathf.Abs(touchDownPosition.x - touchUpPosition.x);
+        var y = Mathf.Abs(touchDownPosition.y - touchUpPosition.y);
+        if (directVector.x >= 0 && y/x >= 1)
+        {
+            return SwipeDirection.SwipeRight;
+        }
+        if (directVector.x < 0 && y/x >= 1)
+        {
+            return SwipeDirection.SwipeLeft;
+        }
+        if (directVector.y >= 0 && y/x < 1)
+        {
+            return SwipeDirection.SwipeUp;
+        }
+        if (directVector.y < 0 && y/x < 1)
+        {
+            return SwipeDirection.SwipeDown;
+        }
+
+        return SwipeDirection.None;
+    }
+    
+    private IEnumerator MoveCoroutine(SwipeDirection direction)
+    {
+        yield return null;
+        if(direction == SwipeDirection.SwipeLeft)
         {
             if(_lane == Lane.Mid)
             {
@@ -84,7 +205,8 @@ public class Player : MonoBehaviour
                 _lane = Lane.Mid;
                 animator.Play("Dodge Left");
             }
-        } else if(SwipeRight)
+        } 
+        else if(direction == SwipeDirection.SwipeRight)
         {
             if(_lane == Lane.Mid)
             {
@@ -98,34 +220,27 @@ public class Player : MonoBehaviour
                 animator.Play("Dodge Right");
             }
         }
-        Vector3 moveVector = new Vector3(x - transform.position.x, y * Time.deltaTime, speed * Time.deltaTime);
-        x = Mathf.Lerp(x, NewXPos, Time.deltaTime * SpeedDodge);
+        Vector3 moveVector = new Vector3(x - transform.position.x, y * Time.deltaTime, 5 * Time.deltaTime);
+        x = Mathf.Lerp(x, NewXPos, Time.deltaTime * speedDodge);
         characterController.Move(moveVector);
     }
 
     private void Jump(){
         if(characterController.isGrounded) {
-            SwipeUp = Input.GetKeyDown(KeyCode.Space);
+            SwipeUp = Input.GetKeyDown(KeyCode.Space) || Input.GetAxisRaw("Vertical") > 0;
             if(animator.GetCurrentAnimatorStateInfo(0).IsName("Falling Idle")) {
                 animator.Play("Landing");
                 inJump = false;
-            }
-            if(SwipeUp)
-            {
-                y = jumpForce;
-                animator.CrossFadeInFixedTime("Jump", 0.1f);
-                inJump = true;
             }
         } else {
             y -= jumpForce * 2 * Time.deltaTime;
             if(characterController.velocity.y < -0.1f) animator.Play("Falling Idle");
         }
-        
     }
 
     // todo check ???
     internal float rollCounter;
-    public void Roll() {
+    private void Roll() {
         rollCounter -= Time.deltaTime;
         if(rollCounter <= 0) {
             rollCounter = 0f;
@@ -133,22 +248,12 @@ public class Player : MonoBehaviour
             characterController.height = colHeight;
             inRoll = false;
         }
-        SwipeDown = Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S);
-        if(SwipeDown) {
-            rollCounter = 0.5f;
-            y -= 10f;
-            characterController.center = new Vector3(0, colCenterY/2f, 0);
-            characterController.height = colHeight/2f;
-            animator.CrossFadeInFixedTime("Quick Roll To Run", 0.25f);
-            inRoll = true;
-            inJump = false;
-        }
     }
 
     public void OnCharacterColliderHit(Collider col) {
-        HitX = GetHitX(col);
-        HitY = GetHitY(col);
-        HitZ = GetHitZ(col);
+        hitX = GetHitX(col);
+        hitY = GetHitY(col);
+        hitZ = GetHitZ(col);
     }
 
     public HitX GetHitX(Collider col) {

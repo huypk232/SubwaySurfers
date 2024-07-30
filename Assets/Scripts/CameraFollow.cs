@@ -1,13 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class CameraFollow : MonoBehaviour
 {
-    public Transform Target;
+    [SerializeField] public Transform target;
     private Vector3 offset;
     private float y;
-    public float SpeedFollow = 5f;
+    public float speedFollow = 5f;
 
     void Start()
     {
@@ -16,11 +17,16 @@ public class CameraFollow : MonoBehaviour
 
     void LateUpdate()
     {
-        Vector3 followPos = Target.position + offset;
+        Vector3 followPos = target.position + offset;
         RaycastHit hit;
-        if(Physics.Raycast(Target.position, Vector3.down, out hit, 2.5f))
-            y = Mathf.Lerp(y, hit.point.y, Time.deltaTime * SpeedFollow);
-        else y = Mathf.Lerp(y, Target.position.y, Time.deltaTime * SpeedFollow);      
+        if (Physics.Raycast(target.position, Vector3.down, out hit, 3f))
+        {
+            y = Mathf.Lerp(y, hit.point.y, Time.deltaTime * speedFollow);
+        }
+        else
+        {
+            y = Mathf.Lerp(y, target.position.y, Time.deltaTime * speedFollow);
+        }      
         followPos.y = offset.y + y;
         transform.position = followPos;
     }
