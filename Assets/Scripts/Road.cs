@@ -17,10 +17,8 @@ public class Road : MonoBehaviour
     void Start()
     {
         player = FindObjectOfType<Player>();
-        InvokeRepeating("GenerateSubwayTracks", 0, 10f);
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (player.transform.position.z - transform.position.z >= 500)

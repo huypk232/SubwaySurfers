@@ -8,7 +8,7 @@ public class OnCollision : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.transform.tag == "Player")
+        if (collision.transform.CompareTag("Player"))
             return;
         player.OnCharacterColliderHit(collision.collider);
     }

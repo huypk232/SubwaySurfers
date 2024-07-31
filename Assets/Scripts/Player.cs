@@ -38,13 +38,16 @@ public class Player : MonoBehaviour
 
     private float _runDistance = 50f;
     private float _deltaRunDistance;
-    
-    [Header("Component")]
+
+    [Header("Component")] 
+    private GameManager gameManager;
     private PlayerInputManager playerInput;
     // [SerializeField] private PlayerInput playerInput;
     [SerializeField] private Animator animator;
     [SerializeField] private CharacterController characterController;
     
+    
+    [Header("Movement")]
     private float lerpX;
     public float speedDodge;
     private float jumpForce = 7f; 
@@ -59,58 +62,76 @@ public class Player : MonoBehaviour
     [SerializeField] private HitX hitX = HitX.None;
     [SerializeField] private HitY hitY = HitY.None;
     [SerializeField] private HitZ hitZ = HitZ.None;
+    [SerializeField] private bool dizzy;
+    [SerializeField] private Vector3 startDizzyPosition;
+    private const float MinDistanceCancelDizzy = 20f;
 
-    [Header("Mobile Movement")]
+    [Header("Mobile Movement Manager")]
     private Vector2 swipeDirection;
     private InputAction inputAction;
 
     private Vector2 touchDownPosition;
     private Vector2 touchUpPosition;
-    private float swipeResist = 0.5f;
+    private const float SwipeResist = 0.5f;
 
     private void Awake()
-    {
-        // todo add input action later
-        // inputAction.Enable();
-        // inputAction.performed += context =>
-        // {
-        //     StartCoroutine(MoveCoroutine(context.ReadValue<Vector2>()));
-        // };
-        // SwipeDetection.instance.swipePerformed += context =>
-        // {
-        //     StartCoroutine(MoveCoroutine(context));
-        // };
-    }
-
-    void Start()
     {
         playerInput = new PlayerInputManager();
         playerInput.Player.Enable();
         playerInput.Player.Touch.canceled += ProcessTouchComplete;
         playerInput.Player.Swipe.performed += ProcessSwipeDelta;
-        
+    }
+
+    void Start()
+    {
         colHeight = characterController.height;
         colCenterY = characterController.center.y;
         _deltaRunDistance = _runDistance;
+        gameManager = FindObjectOfType<GameManager>();
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        // if (Input.touch)
-        // Jump();
-        // Roll();
+        if (gameManager.state == GameState.Idle)
+        {
+            // change to ready animation
+            if (Input.anyKeyDown)
+            {
+                gameManager.state = GameState.Play;
+                
+            }
+        }
+        else if (gameManager.state == GameState.Ready)
+        {
+            // change to run animation 
+            // skip this
+            // todo implement when have fit animation
+        } 
+        else if (gameManager.state == GameState.Play)
+        {
+            animator.SetTrigger("Start");
+        }
     }
-
+    
     private void FixedUpdate()
     {
-        Move();
-        Jump();
-        Roll();
+        if (gameManager.state == GameState.Play)
+        {
+            Jump();
+            Move();
+            Roll();
+        }
     }
 
     private void Move()
     {
+        if (dizzy)
+        {
+            if ((transform.position - startDizzyPosition).magnitude >= MinDistanceCancelDizzy)
+            {
+                dizzy = false;
+            }
+        }
         Vector3 moveVector = new Vector3(x - transform.position.x, y * Time.deltaTime, 5 * Time.deltaTime);
         x = Mathf.Lerp(x, NewXPos, Time.deltaTime * speedDodge);
         characterController.Move(moveVector);
@@ -123,7 +144,7 @@ public class Player : MonoBehaviour
 
     private void ProcessTouchComplete(InputAction.CallbackContext context)
     {
-        if (Mathf.Abs(swipeDirection.magnitude) < swipeResist) return;
+        if (Mathf.Abs(swipeDirection.magnitude) < SwipeResist) return;
         Debug.Log(swipeDirection);
         var position = Vector3.zero;
         if (Mathf.Abs(swipeDirection.x) >= Mathf.Abs(swipeDirection.y))
@@ -258,10 +279,22 @@ public class Player : MonoBehaviour
         return hit;
     }
 
-    private void OnCollisionEnter(Collision other) {
-        if(other.gameObject.CompareTag("Train"))
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.transform.CompareTag("Player"))
+            return;
+        OnCharacterColliderHit(collision.collider);
+        if (hitX != HitX.None || hitY != HitY.None || hitZ != HitZ.None)
         {
-            Debug.Log("collision");
+            if (!dizzy)
+            {
+                dizzy = true;
+                startDizzyPosition = transform.position;
+            }
+            else
+            {
+                Debug.Log("Game Over");
+            }
         }
     }
 
