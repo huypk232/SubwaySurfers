@@ -1,5 +1,5 @@
 {
-    "name": "Player",
+    "name": "PlayerInputManager",
     "maps": [
         {
             "name": "Player",
@@ -27,6 +27,24 @@
                     "name": "Fire",
                     "type": "Button",
                     "id": "1e2ec86b-04b7-4c77-9798-6b5d873fa44c",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Swipe",
+                    "type": "Value",
+                    "id": "bf423542-1f39-490e-b4e8-b50c4cd669f5",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Touch",
+                    "type": "Button",
+                    "id": "43ad02d2-09f4-497e-987f-5e497cafd16a",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
@@ -169,7 +187,7 @@
                 {
                     "name": "Touch",
                     "id": "2f1068ef-4642-4255-9066-9ce30fedd93d",
-                    "path": "2DVector(mode=1)",
+                    "path": "2DVector",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -178,7 +196,7 @@
                     "isPartOfComposite": false
                 },
                 {
-                    "name": "Left",
+                    "name": "Up",
                     "id": "7c00c2e2-c683-40af-bde6-542095d78c7a",
                     "path": "<Touchscreen>/delta/left",
                     "interactions": "",
@@ -189,7 +207,7 @@
                     "isPartOfComposite": true
                 },
                 {
-                    "name": "Right",
+                    "name": "Down",
                     "id": "fd50eec1-bbe5-41fb-a543-db175ecb6d7d",
                     "path": "<Touchscreen>/delta/right",
                     "interactions": "",
@@ -200,23 +218,89 @@
                     "isPartOfComposite": true
                 },
                 {
-                    "name": "up",
-                    "id": "e49243a2-3aed-481d-b520-dbb77f2e0018",
-                    "path": "<Touchscreen>/delta/up",
+                    "name": "Left",
+                    "id": "b555cdad-f95b-4bf7-8f8f-9e66f1dd1de3",
+                    "path": "",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "Right",
+                    "id": "11217c7c-d159-4a32-ab13-8b76a64b8286",
+                    "path": "",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "a388b35f-9671-412e-bfe1-5346a002450b",
+                    "path": "",
                     "interactions": "",
                     "processors": "",
                     "groups": "Touch",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "2D Vector",
+                    "id": "9719f4fc-9943-4598-87db-73da3b61021b",
+                    "path": "2DVector",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Move",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "up",
+                    "id": "05dde98a-5430-4fd0-85f5-0d56081cb6d3",
+                    "path": "",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
                     "action": "Move",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
                 {
                     "name": "down",
-                    "id": "ee8f2808-22c7-49a0-8739-925be0cec538",
-                    "path": "<Touchscreen>/delta/down",
+                    "id": "edbc6c7e-d81c-4635-b373-c269891f805b",
+                    "path": "",
                     "interactions": "",
                     "processors": "",
-                    "groups": "Touch",
+                    "groups": "",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "left",
+                    "id": "b226a3ed-894a-4d8f-ada2-6f61a5a32cfd",
+                    "path": "",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "right",
+                    "id": "df195bd0-1e8d-4d84-9cae-c0e819525c33",
+                    "path": "",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
                     "action": "Move",
                     "isComposite": false,
                     "isPartOfComposite": true
@@ -306,6 +390,28 @@
                     "processors": "",
                     "groups": "XR",
                     "action": "Fire",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "fa654d98-1b20-42b9-87ee-4b9fa85180f7",
+                    "path": "<Touchscreen>/delta",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Touch",
+                    "action": "Swipe",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "684115ab-cc8e-4411-8f7b-4f304da29fb7",
+                    "path": "<Touchscreen>/Press",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Touch",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

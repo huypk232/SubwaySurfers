@@ -7,32 +7,22 @@ public class RoadGenerator : MonoBehaviour
     public GameObject[] trackPrefab;
     
     [SerializeField] private Player player;
-
+    private float trackOrder = 1;
+    private const float FirstTotalRoads = 5;
+    
     void Start()
     {
-        GenerateSubwayTracks();
-        InvokeRepeating("GenerateSubwayTracks", 10f, 10f);
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        // transform.position += Vector3.back * 5 * Time.deltaTime;
+        for (int i = 0; i < FirstTotalRoads; i++)
+        {
+            GenerateSubwayTracks();
+        }
     }
 
     public void GenerateSubwayTracks()
     {
-        player = GameObject.FindObjectOfType<Player>();
-        int pickIndex = Random.Range(0, trackPrefab.Length - 1);
-        Vector3 genneratePos = new Vector3(0, 0, player.transform.position.z + 100);
-        Instantiate(trackPrefab[pickIndex], genneratePos, Quaternion.identity);
-    }
-
-    public void GenerateManually(Vector3 position)
-    {
-        int pickIndex = Random.Range(0, trackPrefab.Length - 1);
-        Debug.Log("" + pickIndex);
-        Debug.Log(trackPrefab.Length);
-        Instantiate(trackPrefab[pickIndex], position, Quaternion.identity);
+        int pickIndex = Random.Range(0, trackPrefab.Length);
+        Vector3 generatePos = new Vector3(0, 0, 100 * trackOrder);
+        Instantiate(trackPrefab[pickIndex], generatePos, Quaternion.identity, transform);
+        trackOrder++;
     }
 }

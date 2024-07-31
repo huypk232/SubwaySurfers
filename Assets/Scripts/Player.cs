@@ -33,14 +33,15 @@ public class Player : MonoBehaviour
     public float NewXPos = 0f;
     [HideInInspector]
     public bool SwipeLeft, SwipeRight, SwipeUp, SwipeDown;
-    public float XValue;
+    [FormerlySerializedAs("XValue")] public float DistanceEachLaneX;
 
 
     private float _runDistance = 50f;
     private float _deltaRunDistance;
     
     [Header("Component")]
-    [SerializeField] private PlayerInput playerInput;
+    private PlayerInputManager playerInput;
+    // [SerializeField] private PlayerInput playerInput;
     [SerializeField] private Animator animator;
     [SerializeField] private CharacterController characterController;
     
@@ -59,7 +60,8 @@ public class Player : MonoBehaviour
     [SerializeField] private HitY hitY = HitY.None;
     [SerializeField] private HitZ hitZ = HitZ.None;
 
-    [Header("Mobile Movement")] 
+    [Header("Mobile Movement")]
+    private Vector2 swipeDirection;
     private InputAction inputAction;
 
     private Vector2 touchDownPosition;
@@ -82,6 +84,11 @@ public class Player : MonoBehaviour
 
     void Start()
     {
+        playerInput = new PlayerInputManager();
+        playerInput.Player.Enable();
+        playerInput.Player.Touch.canceled += ProcessTouchComplete;
+        playerInput.Player.Swipe.performed += ProcessSwipeDelta;
+        
         colHeight = characterController.height;
         colCenterY = characterController.center.y;
         _deltaRunDistance = _runDistance;
@@ -109,18 +116,56 @@ public class Player : MonoBehaviour
         characterController.Move(moveVector);
     }
     
-    public void OnMove(InputValue value)
+    private void ProcessSwipeDelta(InputAction.CallbackContext context)
     {
-        var directVector = value.Get<Vector2>();
-        if (directVector.y > directVector.x)
+        swipeDirection = context.ReadValue<Vector2>();
+    }
+
+    private void ProcessTouchComplete(InputAction.CallbackContext context)
+    {
+        if (Mathf.Abs(swipeDirection.magnitude) < swipeResist) return;
+        Debug.Log(swipeDirection);
+        var position = Vector3.zero;
+        if (Mathf.Abs(swipeDirection.x) >= Mathf.Abs(swipeDirection.y))
         {
-            if (value.Get<Vector2>().y > 0)
+            if (swipeDirection.x > 0)
+            {
+                if(_lane == Lane.Mid)
+                {
+                    NewXPos = DistanceEachLaneX;
+                    _lane = Lane.Right;
+                    animator.Play("Dodge Right");
+                } else if(_lane == Lane.Left)
+                {
+                    NewXPos = 0;
+                    _lane = Lane.Mid;
+                    animator.Play("Dodge Right");
+                }
+            }
+            else if (swipeDirection.x < 0)
+            {
+                if(_lane == Lane.Mid)
+                {
+                    NewXPos = -DistanceEachLaneX;
+                    _lane = Lane.Left;
+                    animator.Play("Dodge Left");
+                } else if(_lane == Lane.Right)
+                {
+                    NewXPos = 0;
+                    _lane = Lane.Mid;
+                    animator.Play("Dodge Left");
+                }
+            }
+        }
+        else
+        {
+            if (swipeDirection.y > 0)
             {
                 y = jumpForce;
                 animator.CrossFadeInFixedTime("Jump", 0.1f);
                 inJump = true;
             }
-            else if (value.Get<Vector2>().y < 0)
+            else if (swipeDirection.y < 0)
             {
                 rollCounter = 0.5f;
                 y -= 10f;
@@ -131,98 +176,7 @@ public class Player : MonoBehaviour
                 inJump = false;
             }
         }
-        else
-        {
-            if(value.Get<Vector2>().x < 0)
-            {
-                if(_lane == Lane.Mid)
-                {
-                    NewXPos = -XValue;
-                    _lane = Lane.Left;
-                    animator.Play("Dodge Left");
-                } else if(_lane == Lane.Right)
-                {
-                    NewXPos = 0;
-                    _lane = Lane.Mid;
-                    animator.Play("Dodge Left");
-                }
-            } 
-            else if(value.Get<Vector2>().x > 0)
-            {
-                if(_lane == Lane.Mid)
-                {
-                    NewXPos = XValue;
-                    _lane = Lane.Right;
-                    animator.Play("Dodge Right");
-                } else if(_lane == Lane.Left)
-                {
-                    NewXPos = 0;
-                    _lane = Lane.Mid;
-                    animator.Play("Dodge Right");
-                }
-            }
-        }
-    }
-    
-    private SwipeDirection GetSwipeDirection()
-    {
-        var directVector = touchUpPosition - touchDownPosition;
-        var x = Mathf.Abs(touchDownPosition.x - touchUpPosition.x);
-        var y = Mathf.Abs(touchDownPosition.y - touchUpPosition.y);
-        if (directVector.x >= 0 && y/x >= 1)
-        {
-            return SwipeDirection.SwipeRight;
-        }
-        if (directVector.x < 0 && y/x >= 1)
-        {
-            return SwipeDirection.SwipeLeft;
-        }
-        if (directVector.y >= 0 && y/x < 1)
-        {
-            return SwipeDirection.SwipeUp;
-        }
-        if (directVector.y < 0 && y/x < 1)
-        {
-            return SwipeDirection.SwipeDown;
-        }
-
-        return SwipeDirection.None;
-    }
-    
-    private IEnumerator MoveCoroutine(SwipeDirection direction)
-    {
-        yield return null;
-        if(direction == SwipeDirection.SwipeLeft)
-        {
-            if(_lane == Lane.Mid)
-            {
-                NewXPos = -XValue;
-                _lane = Lane.Left;
-                animator.Play("Dodge Left");
-            } else if(_lane == Lane.Right)
-            {
-                NewXPos = 0;
-                _lane = Lane.Mid;
-                animator.Play("Dodge Left");
-            }
-        } 
-        else if(direction == SwipeDirection.SwipeRight)
-        {
-            if(_lane == Lane.Mid)
-            {
-                NewXPos = XValue;
-                _lane = Lane.Right;
-                animator.Play("Dodge Right");
-            } else if(_lane == Lane.Left)
-            {
-                NewXPos = 0;
-                _lane = Lane.Mid;
-                animator.Play("Dodge Right");
-            }
-        }
-        Vector3 moveVector = new Vector3(x - transform.position.x, y * Time.deltaTime, 5 * Time.deltaTime);
-        x = Mathf.Lerp(x, NewXPos, Time.deltaTime * speedDodge);
-        characterController.Move(moveVector);
+        transform.position = position;
     }
 
     private void Jump(){
@@ -315,13 +269,7 @@ public class Player : MonoBehaviour
         if(other.gameObject.CompareTag("Coin"))
         {
             Destroy(other.gameObject);
-        } 
-        // else if(other.TryGetComponent<GenerateRoadTrigger>(out GenerateRoadTrigger trig))
-        // {
-        //     Vector3 genPos = new Vector3(0, 0, transform.position.z +  200);
-
-
-        //     FindObjectOfType<RoadGenerator>().GenerateManually(genPos);
-        // }
+            // increase coins
+        }
     }
 }
