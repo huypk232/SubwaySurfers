@@ -1,10 +1,8 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
-using TouchPhase = UnityEngine.TouchPhase;
+using Random = UnityEngine.Random;
 
 [System.Serializable]
 
@@ -45,12 +43,15 @@ public class Player : MonoBehaviour
     // [SerializeField] private PlayerInput playerInput;
     [SerializeField] private Animator animator;
     [SerializeField] private CharacterController characterController;
-    
-    
+
+
     [Header("Movement")]
+    private float invincibleCollissionDuration = 1f;
+    private float invincibleDeltaTime = 1f;
+    private bool isInvincibleCollide;
     private float lerpX;
     public float speedDodge;
-    private float jumpForce = 7f; 
+    private const float JumpForce = 7f;
     private float x;
     private float y;
     [SerializeField] private bool inJump;
@@ -84,6 +85,7 @@ public class Player : MonoBehaviour
 
     void Start()
     {
+        transform.Rotate(0f, 90f, 0f);
         colHeight = characterController.height;
         colCenterY = characterController.center.y;
         _deltaRunDistance = _runDistance;
@@ -92,13 +94,25 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
+        if (isInvincibleCollide)
+        {
+            invincibleDeltaTime -= Time.deltaTime;
+            if (invincibleDeltaTime <= 0)
+            {
+                invincibleDeltaTime = invincibleCollissionDuration;
+                isInvincibleCollide = false;
+            }
+            animator.SetTrigger("Start");
+
+        }
         if (gameManager.state == GameState.Idle)
         {
             // change to ready animation
             if (Input.anyKeyDown)
             {
-                gameManager.state = GameState.Play;
+                gameManager.StartGame();
                 
+                transform.Rotate(0f, -90f, 0f);
             }
         }
         else if (gameManager.state == GameState.Ready)
@@ -109,7 +123,7 @@ public class Player : MonoBehaviour
         } 
         else if (gameManager.state == GameState.Play)
         {
-            animator.SetTrigger("Start");
+            
         }
     }
     
@@ -130,6 +144,9 @@ public class Player : MonoBehaviour
             if ((transform.position - startDizzyPosition).magnitude >= MinDistanceCancelDizzy)
             {
                 dizzy = false;
+                hitX = HitX.None;
+                hitY = HitY.None;
+                hitZ = HitZ.None;
             }
         }
         Vector3 moveVector = new Vector3(x - transform.position.x, y * Time.deltaTime, 5 * Time.deltaTime);
@@ -145,7 +162,6 @@ public class Player : MonoBehaviour
     private void ProcessTouchComplete(InputAction.CallbackContext context)
     {
         if (Mathf.Abs(swipeDirection.magnitude) < SwipeResist) return;
-        Debug.Log(swipeDirection);
         var position = Vector3.zero;
         if (Mathf.Abs(swipeDirection.x) >= Mathf.Abs(swipeDirection.y))
         {
@@ -182,7 +198,7 @@ public class Player : MonoBehaviour
         {
             if (swipeDirection.y > 0)
             {
-                y = jumpForce;
+                y = JumpForce;
                 animator.CrossFadeInFixedTime("Jump", 0.1f);
                 inJump = true;
             }
@@ -208,7 +224,7 @@ public class Player : MonoBehaviour
                 inJump = false;
             }
         } else {
-            y -= jumpForce * 2 * Time.deltaTime;
+            y -= JumpForce * 2 * Time.deltaTime;
             if(characterController.velocity.y < -0.1f) animator.Play("Falling Idle");
         }
     }
@@ -279,30 +295,36 @@ public class Player : MonoBehaviour
         return hit;
     }
 
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (collision.transform.CompareTag("Player"))
-            return;
-        OnCharacterColliderHit(collision.collider);
-        if (hitX != HitX.None || hitY != HitY.None || hitZ != HitZ.None)
-        {
-            if (!dizzy)
-            {
-                dizzy = true;
-                startDizzyPosition = transform.position;
-            }
-            else
-            {
-                Debug.Log("Game Over");
-            }
-        }
-    }
-
     private void OnTriggerEnter(Collider other) {
         if(other.gameObject.CompareTag("Coin"))
         {
+            Debug.Log("Helllo");
             Destroy(other.gameObject);
             // increase coins
+        }
+    }
+
+    private void OnControllerColliderHit(ControllerColliderHit collision)
+    {
+        if (collision.gameObject.CompareTag("Obstacle"))
+        {
+            OnCharacterColliderHit(collision.collider);
+            if (hitX != HitX.None || hitY != HitY.None)
+            {
+                if (!dizzy)
+                {
+                    dizzy = true;
+                    isInvincibleCollide = true;
+                    startDizzyPosition = collision.transform.position;
+                }
+                else
+                {
+                    if (!isInvincibleCollide)
+                    {
+                        gameManager.GameOver();
+                    }
+                }
+            }
         }
     }
 }
