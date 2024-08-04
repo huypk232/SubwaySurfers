@@ -40,7 +40,6 @@ public class Player : MonoBehaviour
     [Header("Component")] 
     private GameManager gameManager;
     private PlayerInputManager playerInput;
-    // [SerializeField] private PlayerInput playerInput;
     [SerializeField] private Animator animator;
     [SerializeField] private CharacterController characterController;
 
@@ -102,7 +101,6 @@ public class Player : MonoBehaviour
                 invincibleDeltaTime = invincibleCollissionDuration;
                 isInvincibleCollide = false;
             }
-            animator.SetTrigger("Start");
 
         }
         if (gameManager.state == GameState.Idle)
@@ -111,7 +109,7 @@ public class Player : MonoBehaviour
             if (Input.anyKeyDown)
             {
                 gameManager.StartGame();
-                
+                animator.SetTrigger("Start");
                 transform.Rotate(0f, -90f, 0f);
             }
         }
@@ -198,9 +196,12 @@ public class Player : MonoBehaviour
         {
             if (swipeDirection.y > 0)
             {
-                y = JumpForce;
-                animator.CrossFadeInFixedTime("Jump", 0.1f);
-                inJump = true;
+                if (characterController.isGrounded)
+                {
+                    y = JumpForce;
+                    animator.CrossFadeInFixedTime("Jump", 0.1f);
+                    inJump = true;
+                }
             }
             else if (swipeDirection.y < 0)
             {
@@ -213,7 +214,11 @@ public class Player : MonoBehaviour
                 inJump = false;
             }
         }
-        transform.position = position;
+
+        if (position != Vector3.zero)
+        {
+            transform.position = position;
+        }
     }
 
     private void Jump(){
@@ -225,7 +230,13 @@ public class Player : MonoBehaviour
             }
         } else {
             y -= JumpForce * 2 * Time.deltaTime;
-            if(characterController.velocity.y < -0.1f) animator.Play("Falling Idle");
+            if (!inRoll)
+            {
+                if (characterController.velocity.y < -0.1f)
+                {
+                    animator.Play("Falling Idle");
+                }
+            }
         }
     }
 
@@ -260,10 +271,18 @@ public class Player : MonoBehaviour
             hit = HitX.Left;
         else
             hit = HitX.Mid;
+        if (hit == HitX.Mid && col.gameObject.CompareTag("Box"))
+        {
+            return HitX.None;
+        }
         return hit;
     }
 
     public HitY GetHitY(Collider col) {
+        if (col.gameObject.CompareTag("Box") || col.gameObject.CompareTag("Slope"))
+        {
+            return HitY.None;
+        }
         Bounds charBounds = characterController.bounds;
         Bounds colBounds = col.bounds;
         float minY = Mathf.Max(colBounds.min.y, charBounds.min.y);
@@ -280,6 +299,10 @@ public class Player : MonoBehaviour
     }
 
     public HitZ GetHitZ(Collider col) {
+        if (col.gameObject.CompareTag("Slope"))
+        {
+            return HitZ.None;
+        }
         Bounds charBounds = characterController.bounds;
         Bounds colBounds = col.bounds;
         float minZ = Mathf.Max(colBounds.min.z, charBounds.min.z);
@@ -298,7 +321,6 @@ public class Player : MonoBehaviour
     private void OnTriggerEnter(Collider other) {
         if(other.gameObject.CompareTag("Coin"))
         {
-            Debug.Log("Helllo");
             Destroy(other.gameObject);
             // increase coins
         }
@@ -306,7 +328,7 @@ public class Player : MonoBehaviour
 
     private void OnControllerColliderHit(ControllerColliderHit collision)
     {
-        if (collision.gameObject.CompareTag("Obstacle"))
+        if (collision.gameObject.CompareTag("Obstacle") || collision.gameObject.CompareTag("Box") || collision.gameObject.CompareTag("Slope"))
         {
             OnCharacterColliderHit(collision.collider);
             if (hitX != HitX.None || hitY != HitY.None)
@@ -316,6 +338,8 @@ public class Player : MonoBehaviour
                     dizzy = true;
                     isInvincibleCollide = true;
                     startDizzyPosition = collision.transform.position;
+                    animator.SetTrigger("Stumble"); // dizzy animation
+                    
                 }
                 else
                 {

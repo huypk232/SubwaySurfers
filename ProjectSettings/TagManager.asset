@@ -8,6 +8,8 @@ TagManager:
   - Coin
   - Road Trigger
   - Obstacle
+  - Slope
+  - Box
   layers:
   - Default
   - TransparentFX

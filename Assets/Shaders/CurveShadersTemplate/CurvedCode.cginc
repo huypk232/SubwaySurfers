@@ -21,6 +21,8 @@ struct v2f
 sampler2D _MainTex;
 float4 _MainTex_ST;
 float _CurveStrength;
+bool _Curve_X = false;
+bool _Curve_Y = false;
 
 
 v2f vert(appdata v)
@@ -35,7 +37,23 @@ v2f vert(appdata v)
 
 	float dist = UNITY_Z_0_FAR_FROM_CLIPSPACE(o.vertex.z);
 
-	o.vertex.y -= _CurveStrength * dist * dist * _ProjectionParams.x;
+	if (_Curve_X == 1)
+	{
+		o.vertex.x -= _CurveStrength * dist * dist * _ProjectionParams.y;
+	}
+	else
+	{
+		o.vertex.x += _CurveStrength * dist * dist * _ProjectionParams.y;
+	}
+	if (_Curve_Y == 1)
+	{
+		o.vertex.y -= _CurveStrength * dist * dist * _ProjectionParams.x;
+	}
+	else
+	{
+		o.vertex.y += _CurveStrength * dist * dist * _ProjectionParams.x;
+	}
+	
 
 	o.uv = TRANSFORM_TEX(v.uv, _MainTex);
 

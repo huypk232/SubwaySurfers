@@ -52,7 +52,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: ec2074e2790ca9b41bf1d73109f49d20, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
@@ -67,7 +67,19 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SpecGlossMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SubsurfaceTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Texture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Texture2D:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -91,10 +103,13 @@ Material:
     - _AlphaClip: 0
     - _AlphaClipThreshold: 0.33
     - _AlphaToMask: 0
+    - _Backward_Strength: 1e-10
     - _Blend: 0
     - _BlendOp: 0
     - _BumpScale: 1
     - _Cull: 2
+    - _Curve_X: 0
+    - _Curve_Y: 0
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
@@ -112,6 +127,7 @@ Material:
     - _QueueControl: 0
     - _QueueOffset: 0
     - _SampleGI: 0
+    - _Sideways_Strength: 0.00000001
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
@@ -119,6 +135,7 @@ Material:
     - _SubsurfaceIndirect: 0.25
     - _SubsurfaceKwToggle: 0
     - _Surface: 0
+    - _Tile_Strength: 0
     - _UVSec: 0
     - _WINDQUALITY: 4
     - _WindQuality: 1
@@ -128,6 +145,7 @@ Material:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _HueVariationColor: {r: 1, g: 0.5, b: 0, a: 0.2}
+    - _SpecColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
     - _SubsurfaceColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
 --- !u!114 &1518368390654776225
