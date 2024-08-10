@@ -52,6 +52,11 @@ public class GameManager : MonoBehaviour
         idlePanel.SetActive(true);
     }
 
+    public void TestButton()
+    {
+        Debug.Log("Press");
+    }
+    
     private void ChangeCamera(CameraAngle index)
     {
         foreach (var angle in cameras)

@@ -139,6 +139,31 @@ public class Player : MonoBehaviour
     {
         if (dizzy)
         {
+            if (hitX == HitX.Right)
+            {
+                switch (_lane)
+                {
+                    case Lane.Mid:
+                        NewXPos = DistanceEachLaneX;
+                        _lane = Lane.Right;
+                        break;
+                    case Lane.Left:
+                        NewXPos = 0;
+                        _lane = Lane.Mid;
+                        break;
+                    // case Lane.Right:
+                    //     NewXPos = 0;
+                    //     _lane = Lane.Mid;
+                    //     break;
+
+                }
+                // animator.CrossFadeInFixedTime("Stumble", 0.25f);
+                hitX = HitX.None;
+            } 
+            else if (hitX == HitX.Right)
+            {
+                
+            }
             if ((transform.position - startDizzyPosition).magnitude >= MinDistanceCancelDizzy)
             {
                 dizzy = false;
@@ -154,11 +179,13 @@ public class Player : MonoBehaviour
     
     private void ProcessSwipeDelta(InputAction.CallbackContext context)
     {
+        if (gameManager.state != GameState.Play) return;
         swipeDirection = context.ReadValue<Vector2>();
     }
 
     private void ProcessTouchComplete(InputAction.CallbackContext context)
     {
+        if (gameManager.state != GameState.Play) return;
         if (Mathf.Abs(swipeDirection.magnitude) < SwipeResist) return;
         var position = Vector3.zero;
         if (Mathf.Abs(swipeDirection.x) >= Mathf.Abs(swipeDirection.y))
@@ -205,13 +232,17 @@ public class Player : MonoBehaviour
             }
             else if (swipeDirection.y < 0)
             {
-                rollCounter = 0.5f;
-                y -= 10f;
-                characterController.center = new Vector3(0, colCenterY/2f, 0);
-                characterController.height = colHeight/2f;
-                animator.CrossFadeInFixedTime("Quick Roll To Run", 0.25f);
-                inRoll = true;
-                inJump = false;
+                if (!inRoll)
+                {
+                    rollCounter = 0.5f;
+                    y -= 10f;
+                    characterController.center = new Vector3(0, colCenterY/2f, 0);
+                    characterController.height = colHeight/2f;
+                    animator.SetTrigger("Roll");
+                    // animator.CrossFadeInFixedTime("Quick Roll To Run", 0.25f);
+                    inRoll = true;
+                    inJump = false;
+                }
             }
         }
 
@@ -253,6 +284,10 @@ public class Player : MonoBehaviour
     }
 
     public void OnCharacterColliderHit(Collider col) {
+        if (isInvincibleCollide)
+        {
+            return;
+        }
         hitX = GetHitX(col);
         hitY = GetHitY(col);
         hitZ = GetHitZ(col);
@@ -338,8 +373,8 @@ public class Player : MonoBehaviour
                     dizzy = true;
                     isInvincibleCollide = true;
                     startDizzyPosition = collision.transform.position;
-                    animator.SetTrigger("Stumble"); // dizzy animation
-                    
+                    // animator.SetTrigger("Stumble"); // dizzy animation
+                    animator.CrossFadeInFixedTime("Stumble", 0.25f); // dizzy animation
                 }
                 else
                 {
